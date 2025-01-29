@@ -52,13 +52,20 @@ module verification(
     
         case (state) 
         TX_DUT: begin
-        
+            
+            state <= RX_DUT;
             end
         RX_DUT: begin
         
+            state <= RX_INPUT;
             end
         RX_INPUT: begin
         
+        
+            // wait for inputs to be filled. or else stay in this RX_INPUT state. 
+            if (rx_done) begin  // inputs have been filled if rx_done = 1,
+                state <= TX_DUT;
+            end
             end
         
     end
