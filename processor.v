@@ -121,11 +121,11 @@
                     bram_mode <= 1;
                     rx_trigger <= 1;
                     bram_ready <= 0;
-                    if (start_address <= end_address) start_address <= start_address + 1;
+                    if (start_address <= end_address) start_address <= start_address + 1; // go to next address if needed
                 end
                 else if (rx_done) begin
-                    bram_byte_write <= rx_byte;
-                    bram_address <= start_address;
+                    bram_byte_write <= rx_byte; // send byte to BRAM module
+                    bram_address <= start_address; // send address to BRAM module
                     bram_ready <= 1;
                 end
             end
