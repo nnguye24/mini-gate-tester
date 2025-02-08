@@ -65,6 +65,10 @@ module verification(
         state <= 3'b01; // starts in the RX_INPUT state
         num_pairs <= 0;
         num_outputs <= 0;
+
+        TX_DUT_READY <= 0;
+        RX_DUT_READY <= 0;
+
     end
     
     always @(posedge clk) begin
@@ -81,6 +85,10 @@ module verification(
                     state <= RX_DUT;
                 end
                 else if (dut_in != 8'h00) begin  // if dut_in has been filled, we can go to RX_DUT
+                // think about this.... maybe we dont even need dut_pinout
+                // we can just assign outputs to two indexes of dut_in and pmod that way
+                // ie. outA = dut_in[numpairs+1]
+                // outB = dut_in[numpairs]
                     dut_pinout <= dut_in[num_pairs+1,num_pairs];    // takes 2 inputs from dut_in and puts into pinout
                     RX_DUT_READY <= 1;    // when inputs filled, go to 
                 end
