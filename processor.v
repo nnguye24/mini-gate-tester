@@ -7,11 +7,6 @@
     input wire [7:0] rx_byte,
     input wire tx_done,
     input wire rx_done,
-    
-    input wire dut_start_address,   // address will come from verification.v 
-    input wire dut_end_address, // DUT address is the address for DUT ouputs
-    input wire input_start_address, // input address is the address for the DUT inputs. 
-    input wire input_end_address,
     input wire [7:0] command, // command to determine read/write will be received from verification.
     
     output reg bram_mode,
@@ -66,8 +61,6 @@
                 else rx_trigger <= 1;
             end
             STATE_READ: begin   // reads from memory location and transmit to computer through UART
-                start_address <= dut_start_address;
-                end_address <= dut_end_address;
                 if (tx_trigger) begin   //
                     tx_trigger <= 0;
                     if (start_address > end_address) begin // done transmitting, send back to WAITING FOR COMMAND
@@ -104,8 +97,6 @@
             // we are cycling through these states right as we receive the bits at a low speed. Since we cycle fast, we don't need to care
             // about missing timing. WE ARE SIGNIFICANTLY FASTER THAN THE BAUD RATE
             STATE_WRITE: begin
-                start_address <= input_start_address;
-                end_address <= input_end_address;
                 if (rx_trigger) begin
                     if (start_address > end_address) begin
                         bram_mode <= 0; // extra precaution

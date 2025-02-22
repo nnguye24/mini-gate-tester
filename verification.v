@@ -38,10 +38,8 @@ module verification(
     input wire dut_out,     // input from the DUT itself through PMOD port
 
     output reg [1:0] dut_pinout,    // 2 pin inputs to the DUT
-    output reg [15:0] dut_start_address,
-    output reg [15:0] dut_end_address,
-    output reg [15:0] input_start_address,
-    output reg [15:0] input_end_address,
+    output reg [15:0] start_address,
+    output reg [15:0] end_address,
     output reg [7:0] command,   // to send to processor to determine if write/read from memory location
     output reg [7:0] dut_in, // logic inputs sent out to DUT
     output reg [7:0] dut_output_reg // DUT outputs to be displayed as LED
@@ -64,11 +62,9 @@ module verification(
         // For example, the inputs of any 2 input gate would be 00 01 10 11,
 
         // * start and end addresses should be the same * for 2 input gate (which we are doing currently)
-        dut_start_address <= 16'h0000;  //0 - 7 (8 bits)
-        dut_end_address <= 16'h0000;
 
-        input_start_address <= 16'h0008;    // 8 - 15 (8 bits)
-        input_end_address <= 16'h0008;
+
+
 
         command <= 8'h00;
         dut_in <= 8'h00;    // probably not needed as the processor reads from memory and does it
@@ -86,11 +82,13 @@ module verification(
         case (state) 
             TX_DUT: begin   
                 TX_DUT_READY <= 0; 
+                // This is the transmit-to-dut address
+                start_address <= 16'h0008;    // 8 - 15 (8 bits)
+                end_address <= 16'h0008;
                 // reads from 16'h0008, the 8-bit input address
                 // stores these inputs in a register, to be sent through PMOD outputs
                 dut_in = tx_byte; // tx_byte received from processor.v read operation, stored in DUT input register
                 if(RX_DUT_READY) begin
-                    
                     state <= RX_DUT;
                 end
                 else if (dut_in != 8'h00) begin  // if dut_in has been filled, we can go to RX_DUT
@@ -109,7 +107,9 @@ module verification(
 
             RX_DUT: begin
                 RX_DUT_READY <= 0;
-
+                // this is receive from dut address
+                start_address <= 16'h0000;  //0 - 7 (8 bits)
+                end_address <= 16'h0000;
                 if (num_outputs != 4) begin
                     dut_output_reg[num_outputs] <= dut_out; // shift DUT outputs into a register
                     num_pairs <= num_pairs + 2;
