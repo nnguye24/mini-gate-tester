@@ -19,7 +19,17 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
+// STATES
+/* 
+TX_DUT--------------------------------
+State where FPGA sends out our inputs to the DUT
 
+RX_DUT--------------------------------
+State where FPGA receives the outputs from the DUT
+
+RX_INPUT------------------------------
+State where FPGA receives DUT inputs from the PC
+*/
 module verification(
     input clk,
     input wire tx_done,
@@ -70,18 +80,17 @@ module verification(
         RX_DUT_READY <= 0;
 
     end
-    
+
     always @(posedge clk) begin
     
         case (state) 
             TX_DUT: begin   
                 TX_DUT_READY <= 0; 
-                command <= 8'h00;   // sends processor.v a read command
                 // reads from 16'h0008, the 8-bit input address
                 // stores these inputs in a register, to be sent through PMOD outputs
-                dut_in = tx_byte; // tx_byte received from processor.v read operation
-
+                dut_in = tx_byte; // tx_byte received from processor.v read operation, stored in DUT input register
                 if(RX_DUT_READY) begin
+                    
                     state <= RX_DUT;
                 end
                 else if (dut_in != 8'h00) begin  // if dut_in has been filled, we can go to RX_DUT
@@ -117,11 +126,10 @@ module verification(
 
             RX_INPUT: begin
                 // have to initialize input addresses, these will be changed later for reading *2* at a time. 
-                
                 command <= 8'h01;   // sends processor.v write command
-                
                 // wait for inputs to be filled. or else stay in this RX_INPUT state. 
                 if (rx_done) begin  // inputs have been filled if rx_done = 1, 
+                    command <= 8'h00;   // sends processor.v a read command as we just to TX_DUT
                     state <= TX_DUT;
                 end
             end
