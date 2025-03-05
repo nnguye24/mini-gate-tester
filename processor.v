@@ -7,7 +7,10 @@
     input wire [7:0] rx_byte,
     input wire tx_done,
     input wire rx_done,
-    input wire [7:0] command, // command to determine read/write will be received from verification.
+    input wire [15:0] start_address,
+    input wire [15:0] end_address,
+    input wire [7:0] command,  // command to determine read/write will be received from verification.
+ 
     
     output reg bram_mode,
     output reg [15:0] bram_address,
@@ -23,11 +26,7 @@
     localparam STATE_WRITE_WAITING_FOR_DATA = 3;
     localparam STATE_WRITE = 4;
     
-   
-    reg [2:0] command_byte_counter;
     reg [2:0] state;
-    reg [15:0] start_address;
-    reg [15:0] end_address;
     reg bram_ready;
     reg tx_ready;
     
@@ -39,7 +38,7 @@
         tx_trigger <= 0;
         rx_trigger <= 0;
         
-
+        command = 0;
         command_byte_counter <= 0;
 
         start_address <= 0;
@@ -50,13 +49,22 @@
     
     always @(posedge clk) begin
         case (state)
-
-            STATE_PROCESSING_COMMAND: begin
+            // STATE_WAITING_FOR_COMMAND: begin
+            //     if (rx_trigger) begin
+            //         rx_trigger <= 0;
+            //     end
+            //     else if(rx_done) begin
+            //         command <= rx_byte; // receive the command!
+            //         rx_trigger<=1;
+            //         state <= STATE_PROCESSING_COMMAND;
+            //     end
+            // end
+            STATE_PROCESSING_COMMAND: begin 
                 if (!rx_done) begin
                     rx_trigger <= 0;
-                    if (command == 8'h00) state <= STATE_READ;  // command will be received from verification.v!
-                    else if (command == 8'h01) state <= STATE_WRITE_WAITING_FOR_DATA;
-                    else state <= STATE_PROCESSING_COMMAND;
+                    if (command == 8'h01) state <= STATE_READ;  // command will be received from verification.v!
+                    else if (command == 8'h02) state <= STATE_WRITE_WAITING_FOR_DATA;
+                    else state <= STATE_PROCESSING_COMMAND; // loop until valid command
                 end
                 else rx_trigger <= 1;
             end
@@ -89,13 +97,17 @@
             STATE_WRITE_WAITING_FOR_DATA: begin // extra layer of security so that we could make sure we are receiving
                 if (rx_done) begin
                     state <= STATE_WRITE;
+                end 
+                else begin
+                    state <= STATE_WRITE_WAITING_FOR_DATA;  // this is if nothing has been inputted after our command,
+                    // allows us to put in command, and wait to put in the inputs via TxD.c
                 end
             end
             // the write is very similar to the transmit logic flow, almost the same actually
             // logic flows backwards, we wait for stuff to finish!
             // all of this works because the fpga clock is much faster than the baud rate. Therefore, timing does not need to be considered
             // we are cycling through these states right as we receive the bits at a low speed. Since we cycle fast, we don't need to care
-            // about missing timing. WE ARE SIGNIFICANTLY FASTER THAN THE BAUD RATE
+            // about missing timing. *WE ARE SIGNIFICANTLY FASTER THAN THE BAUD RATE*
             STATE_WRITE: begin
                 if (rx_trigger) begin
                     if (start_address > end_address) begin

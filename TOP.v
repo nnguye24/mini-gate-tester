@@ -23,7 +23,9 @@
 module TOP(
     input wire CLK,
     input wire UART_RX,
-    output wire UART_TX
+    output wire UART_TX,
+    output wire sendDUT_inputs,
+    output wire DUT_LED_OUT
     );
     
     parameter BAUDRATE_DIVISOR = 100_000_000/9600;
@@ -35,6 +37,13 @@ module TOP(
     wire [15:0] BRAM_ADDRESS;
     wire [7:0] BRAM_BYTE_IN;
     wire [7:0] BRAM_BYTE_OUT;
+
+    wire [15:0] start_address;
+    wire [15:0] end_address;
+
+    wire [7:0] COMMAND;
+
+
     
     uart_rx #(BAUDRATE_DIVISOR) uart_rx0(
     .clk(CLK),
@@ -69,6 +78,10 @@ module TOP(
     .rx_byte(RX_BUFFER),
     .tx_done(TX_DONE),
     .rx_done(RX_DONE),
+    .start_address(start_address)
+    .end_address(end_address)
+    .command(COMMAND)
+
     
     .bram_mode(BRAM_MODE),
     .bram_address(BRAM_ADDRESS),
@@ -78,5 +91,19 @@ module TOP(
     .rx_trigger(RX_TRIGGER)
     );
     
+
+    verification verification0(
+    .clk(CLK),
+    .tx_done(TX_DONE),
+    .rx_done(RX_DONE),
+    .tx_byte(TX_BUFFER),
+
+    .dut_pinout(sendDUT_inputs),
+    .start_address(start_address),
+    .end_address(end_address),
+    .command(COMMAND),
+    .dut_output_reg(DUT_OUT)
+
+    )
     
 endmodule

@@ -41,8 +41,8 @@ module verification(
     output reg [15:0] start_address,
     output reg [15:0] end_address,
     output reg [7:0] command,   // to send to processor to determine if write/read from memory location
-    output reg [7:0] dut_in, // logic inputs sent out to DUT
-    output reg [7:0] dut_output_reg // DUT outputs to be displayed as LED
+
+    output reg [7:0] dut_output_reg // DUT outputs to be displayed as LED, 
     );
     
     localparam TX_DUT = 0;
@@ -52,7 +52,7 @@ module verification(
     // ready flags
     reg TX_DUT_READY;
     reg RX_DUT_READY;
-
+    reg [7:0] dut_in, // logic inputs sent out to DUT
     reg [2:0] state;
     reg [2:0] num_outputs;
     reg [2:0] num_pairs;    // to count pairs of inputs, 4 pairs in total for 2 input device
@@ -62,10 +62,6 @@ module verification(
         // For example, the inputs of any 2 input gate would be 00 01 10 11,
 
         // * start and end addresses should be the same * for 2 input gate (which we are doing currently)
-
-
-
-
         command <= 8'h00;
         dut_in <= 8'h00;    // probably not needed as the processor reads from memory and does it
         state <= 3'b01; // starts in the RX_INPUT state
@@ -87,7 +83,7 @@ module verification(
                 end_address <= 16'h0008;
                 // reads from 16'h0008, the 8-bit input address
                 // stores these inputs in a register, to be sent through PMOD outputs
-                dut_in = tx_byte; // tx_byte received from processor.v read operation, stored in DUT input register
+                dut_in <= tx_byte; // tx_byte received from processor.v read operation, stored in DUT input register
                 if(RX_DUT_READY) begin
                     state <= RX_DUT;
                 end
@@ -126,10 +122,10 @@ module verification(
 
             RX_INPUT: begin
                 // have to initialize input addresses, these will be changed later for reading *2* at a time. 
-                command <= 8'h01;   // sends processor.v write command
+                command <= 8'h02;   // sends processor.v write command
                 // wait for inputs to be filled. or else stay in this RX_INPUT state. 
                 if (rx_done) begin  // inputs have been filled if rx_done = 1, 
-                    command <= 8'h00;   // sends processor.v a read command as we just to TX_DUT
+                    command <= 8'h01;   // sends processor.v a read command as we just to TX_DUT
                     state <= TX_DUT;
                 end
             end
