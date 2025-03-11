@@ -24,7 +24,6 @@ module uart_tx #(parameter BAUDRATE_DIVISOR = 100_000_000/9600) (
     end
     
     always @(posedge clk) begin
-    
         if (tx_trigger) begin
             tx_done <= 0;
             bit_counter <= 0;
