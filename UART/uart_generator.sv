@@ -1,4 +1,4 @@
-class uart_gen;
+class uart_generator;
    
     rand uart_transaction transaction;
     mailbox gen2driv;

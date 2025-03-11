@@ -13,16 +13,13 @@ class uart_driver extends uvm_driver #(uart_transaction)
     virtual uart_intf vif;
     reg [7:0] data;
     int no_transactions;   
-    uart_transaction tc;
+
 
     function new(string name, uvm_component parent);
       super.new(name, parent);
     endfunction
 
     function void build_phase (uvm_phase phase);
-        super.build_phase()
-        tc = uart_transaction::type_id::create("tc");   // builds transaction class name tc
-
         if( !uvm_config_db #(virtual uart_intf)::get(this, "", "uart_intf", vif) )
         `uvm_error("", "uvm_config_db::get failed")
     endfunction
@@ -37,17 +34,17 @@ class uart_driver extends uvm_driver #(uart_transaction)
             vif.tx_trigger <= 1;
             vif.tx_bit <= 1;
             @(posedge vif.clk);
-                vif.tx_buffer <= tc.tx_buffer;
+                vif.tx_buffer <= req.tx_buffer;
             @(posedge vif.clk);
                 wait(vif.tx_done == 1);
                 vif.tx_trigger <= 1;
 
                 if(vif.tx_done == 1) begin
-                    `uvm_info("", $sformatf("\t tx_trigger = %0b, \t tx_buffer = %0h,\t tx_done = %0b",vif.tx_trigger,tc.tx_buffer,vif.tx_done),UVM_MEDIUM)  
+                    `uvm_info("", $sformatf("\t tx_trigger = %0b, \t tx_buffer = %0h,\t tx_done = %0b",vif.tx_trigger,req.tx_buffer,vif.tx_done),UVM_MEDIUM)  
                     `uvm_info("","[TRANSACTION]::TX PASS",UVM_MEDIUM)  
                 end
                 else begin
-                    `uvm_info("", $sformatf("\t tx_trigger = %0b, \t tx_buffer = %0h,\t tx_done = %0b",vif.tx_trigger,tc.tx_buffer,vif.tx_done),UVM_MEDIUM)  
+                    `uvm_info("", $sformatf("\t tx_trigger = %0b, \t tx_buffer = %0h,\t tx_done = %0b",vif.tx_trigger,req.tx_buffer,vif.tx_done),UVM_MEDIUM)  
                     `uvm_info("","[TRANSACTION]::TX FAIL",UVM_MEDIUM)  
                 end 
                 repeat(100) @(posedge vif.clk);

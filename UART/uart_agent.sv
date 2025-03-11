@@ -13,10 +13,10 @@ class uart_agent extends uvm_agent;
     endfunction
 
     function void build_phase(uvm_phase phase);
-        seqr = uart_sequencer::type_id::create("sequencer", this);
-        driv = uart_driver::type_id::create("driver", this);
-        mon = uart_monitor::type_id::create("monitor", this);
-        cov = uart_subsriber::type_id::create("subscriber", this);
+        sequencer = uart_sequencer::type_id::create("sequencer", this);
+        driver = uart_driver::type_id::create("driver", this);
+        monitor = uart_monitor::type_id::create("monitor", this);
+        subscriber = uart_subsriber::type_id::create("subscriber", this);
     endfunction
 
     function void connect_phase(uvm_phase phase);

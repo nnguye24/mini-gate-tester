@@ -2,9 +2,8 @@ module tb_top;
 
     parameter BAUDRATE_DIVISOR = 100_000_000/9600
     bit clk;
-    uart_intf vif(clk);
-    uart_test t(vif);
-
+    uart_intf intf();
+   
     uart #(BAUDRATE_DIVISOR) dut(
         .CLK(vif.clk),
         .UART_RX(vif.rx_bit),
@@ -17,12 +16,15 @@ module tb_top;
         .RX_DONE(vif.rx_done),
         .RX_BUFFER(vif.rx_buffer)
     );
-
-    always #10 clk = ~clk;
-        
     initial begin
-    repeat(2) @(posedge clk);
-    
+        intf.clk = 0;
+        forever #5 intf.clk = ~intf.clk;
+
+    end
+    initial begin
+        $dumpfile("dump.vcd");
+        $dumpvars;
+
     end
 
 
